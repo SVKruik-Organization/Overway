@@ -1,6 +1,6 @@
 # SK Overway
 
-Welcome to SK Overway, a centralized authentication server for the SK Platform project. This API manages all authentication and authorization services that the other SK Platform products rely on. Want to integrate with SK Platform or any of it's sub-products? This is the place to start.
+Welcome to SK Overway, a centralized SSO authentication server for the SK Platform project. This API manages all authentication and authorization services that the other SK Platform products rely on. Want to integrate with SK Platform or any of it's sub-products? This is the place to start.
 
 ---
 
