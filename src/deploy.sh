@@ -16,7 +16,7 @@ npm run build
 echo "Frontend build complete"
 
 # Backend - auth.stefankruik.com
-composer update
+yes | composer update
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

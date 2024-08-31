@@ -32,7 +32,7 @@ class UplinkConsumer extends Command
             $callback = function ($msg) {
                 $rawPayload = $msg->body;
                 $payload = json_decode($rawPayload, true);
-                Log::info('New Uplink message from || ' . $payload['sender'] . ' ||');
+                Log::info("New Uplink message from '" . $payload['sender'] . "' for reason '" . $payload['reason'] . "'");
                 $msg->ack();
             };
 
