@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { formatApiError, formatAppName } from "~/utils/format";
-import { sendMail } from "~~/server/core/gmd/sendMail";
 import { Pool, database } from "@svkruik/sk-platform-db-conn";
+import { sendUplink } from "@svkruik/sk-uplink-connector";
 
 // Validation schema for the request body
 const bodySchema = z.object({
@@ -35,11 +35,28 @@ export default defineEventHandler(async (event): Promise<string> => {
 
         // Send the email with a 6-digit code
         const verificationPin: number = Math.floor(100000 + Math.random() * 900000);
-        await sendMail(email, "Login OTP", [
-            { "key": "firstName", "value": user.first_name || "user" },
-            { "key": "platformName", "value": appName },
-            { "key": "verificationPin", "value": verificationPin.toString() },
-        ], "2fa-code");
+        await sendUplink({
+            "name": "unicast-services",
+            "router": "Dispatch",
+            "type": "direct"
+        }, {
+            "content": JSON.stringify({
+                "to": email,
+                "subject": "Login OTP",
+                "replacements": [
+                    { "key": "firstName", "value": user.first_name || "user" },
+                    { "key": "platformName", "value": appName },
+                    { "key": "verificationPin", "value": verificationPin.toString() },
+                ],
+                "fileName": "2fa-code"
+            }),
+            "reason": "Account Verification Mail",
+            "recipient": "Dispatch",
+            "sender": "SK Overway",
+            "triggerSource": "email.post.ts",
+            "task": "sendMail",
+            "timestamp": new Date()
+        });
 
         // Delete any existing verification codes for the same email and reason
         // Insert the verification code into the database

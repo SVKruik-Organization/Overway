@@ -1,8 +1,8 @@
 import { Languages, UserTypes } from "~/assets/customTypes";
 import { H3Event } from "h3";
-import { sendMail } from "../gmd/sendMail";
 import { createUserToken } from "~~/server/utils/session";
 import { Pool } from "@svkruik/sk-platform-db-conn";
+import { sendUplink } from "@svkruik/sk-uplink-connector";
 
 type LoginConfig = {
     disableSendMail?: boolean; // true to disable sending login notification email
@@ -37,10 +37,27 @@ export class UserEntity {
         this.email = additionalData[0].email;
 
         // Send new login email
-        if (!config?.disableSendMail) await sendMail(this.email, "New Login", [
-            { "key": "firstName", "value": additionalData[0].first_name || "user" },
-            { "key": "platformName", "value": this.appName },
-        ], "new-login");
+        if (!config?.disableSendMail) await sendUplink({
+            "name": "unicast-services",
+            "router": "Dispatch",
+            "type": "direct"
+        }, {
+            "content": JSON.stringify({
+                "to": this.email,
+                "subject": "New Login",
+                "replacements": [
+                    { "key": "firstName", "value": additionalData[0].first_name || "user" },
+                    { "key": "platformName", "value": this.appName },
+                ],
+                "fileName": "new-login"
+            }),
+            "reason": "Account Verification Mail",
+            "recipient": "Dispatch",
+            "sender": "SK Overway",
+            "triggerSource": "user.ts",
+            "task": "sendMail",
+            "timestamp": new Date()
+        });
 
         // Create the session
         await createUserSession(event, {

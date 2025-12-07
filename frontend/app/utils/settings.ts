@@ -12,7 +12,7 @@ const appPresets: Record<AppTypes, {
     guestLoginEnabled: boolean;
 }> = {
     overway: {
-        name: "Overway",
+        name: "SK Overway",
         userTitle: "User",
         redirectUrl: null,
         guestLoginEnabled: false,
