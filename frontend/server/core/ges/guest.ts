@@ -2,7 +2,7 @@ import { Languages, UserTypes } from "~/assets/customTypes";
 import { H3Event } from "h3";
 import { createUserToken } from "~~/server/utils/session";
 import { Pool } from "@svkruik/sk-platform-db-conn";
-import { sendUplink } from "@svkruik/sk-uplink-connector";
+import { sendMail } from "@svkruik/sk-dispatch-connector";
 
 type LoginConfig = {
     disableSendMail?: boolean; // true to disable sending login notification email
@@ -39,28 +39,14 @@ export class GuestEntity {
         this.code = additionalData[0].password;
 
         // Send new login email to the Administrator who created the guest
-        if (!config?.disableSendMail) await sendUplink({
-            "name": "unicast-services",
-            "router": "Dispatch",
-            "type": "direct"
-        }, {
-            "content": JSON.stringify({
-                "to": additionalData[0].admin_email,
-                "subject": "New Guest Login",
-                "replacements": [
-                    { "key": "adminName", "value": additionalData[0].admin_name },
-                    { "key": "guestName", "value": `${additionalData[0].first_name} ${additionalData[0].last_name}` },
-                    { "key": "platformName", "value": this.appName },
-                ],
-                "fileName": "new-guest-login"
-            }),
-            "reason": "Account Verification Mail",
-            "recipient": "Dispatch",
-            "sender": "SK Overway",
-            "triggerSource": "guest.ts",
-            "task": "sendMail",
-            "timestamp": new Date()
-        });
+        if (!config?.disableSendMail) await sendMail({
+            "to": additionalData[0].admin_email,
+            "fileName": "new-guest-login",
+            "replacements": [
+                { "key": "adminName", "value": additionalData[0].admin_name },
+                { "key": "guestName", "value": `${additionalData[0].first_name} ${additionalData[0].last_name}` },
+                { "key": "platformName", "value": this.appName }]
+        }, "amqp");
 
         // Create the session
         await createUserSession(event, {
