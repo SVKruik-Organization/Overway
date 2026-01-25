@@ -14,7 +14,7 @@ const bodySchema = z.object({
  * @returns The user info and session information.
  */
 export default defineEventHandler(async (event): Promise<{
-    "object_id": number;
+    "object_id": string;
     "object_type": UserTypes;
 }> => {
     try {
@@ -25,12 +25,12 @@ export default defineEventHandler(async (event): Promise<{
         // Retrieve the user ID from the database
         const connection: Pool = await database("central");
         const response: Array<Array<{
-            "object_id": number;
+            "object_id": string;
             "object_type": UserTypes;
         }>> = await connection.query(`
-            SELECT object_id, object_type FROM user_session WHERE token = ? AND date_expiry > CURRENT_TIMESTAMP;
-            UPDATE user_session SET date_last_usage = CURRENT_TIMESTAMP WHERE token = ?;`,
-            [token, token]);
+            SELECT object_id, object_type FROM sessions WHERE payload = ? AND expires_at > CURRENT_TIMESTAMP OR expires_at IS NULL;
+            UPDATE sessions SET last_activity = ? WHERE payload = ?;`,
+            [token, Math.floor(Date.now() / 1000), token]);
         // response[1] is the result of the UPDATE query.
 
         if (!response.length || !response[0].length) throw new Error("The provided token is invalid or has expired. Please check your credentials and try again.", { cause: { statusCode: 1401 } });

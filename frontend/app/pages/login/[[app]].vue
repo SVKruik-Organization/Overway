@@ -92,7 +92,7 @@ async function continueLogin(): Promise<boolean> {
         }
 
         const token: string = await useFetchRefreshSession();
-        username.value = `${userSession.user.value.firstName} ${userSession.user.value.lastName}`;
+        username.value = userSession.user.value.fullName;
         return handleSuccess(token);
     } catch (error: any) {
         $event("popup", {
@@ -194,25 +194,27 @@ function toggleButtonState(button: HTMLButtonElement | null, disabled: boolean):
  * @returns Status of the operation.
  */
 function handleSuccess(token: string): boolean {
-    const firstName: string = userSession.user.value?.firstName || "User";
+    const fullName: string = userSession.user.value?.fullName || "User";
     const redirectUrl: string | null = getAppPreset()?.redirectUrl || null;
 
     if (appName !== "overway" && redirectUrl) {
         $event("popup", {
             id: createTicket(4),
             type: PromptTypes.success,
-            message: `Login successful! Welcome back ${firstName}. Redirecting you now!`,
+            message: `Login successful! Welcome back ${fullName}. Redirecting you now!`,
             duration: 3,
         } as PopupItem);
-        navigateTo({
-            path: redirectUrl,
-            query: {
-                token
-            }
-        }, {
-            external: true,
-            replace: true,
-        });
+        setTimeout(() => {
+            navigateTo({
+                path: redirectUrl,
+                query: {
+                    token
+                }
+            }, {
+                external: true,
+                replace: true,
+            });
+        }, 1500);
     } else step.value = 4;
     return true;
 }
@@ -225,7 +227,7 @@ function handleSuccess(token: string): boolean {
 function getUsername(backup?: string): string {
     if (username.value) return username.value;
     if (userSession.user.value) {
-        return `${userSession.user.value.firstName} ${userSession.user.value.lastName}`;
+        return userSession.user.value.fullName;
     }
     return backup || getAppPreset()?.userTitle || "User";
 }
@@ -320,8 +322,8 @@ async function signOut(): Promise<void> {
                         </hr>
                     </div>
                     <button type="button" class="flex" @click="signOut(); step = 3"
-                        title="Login as a Guest with an Administrator provided PIN.">
-                        <span>Guest PIN</span>
+                        title="Login as a Guest with an Administrator provided account.">
+                        <span>Guest</span>
                         <i class="fa-regular fa-id-badge"></i>
                     </button>
                 </template>
@@ -332,6 +334,7 @@ async function signOut(): Promise<void> {
                     <h2>Almost there,</h2>
                     <strong>{{ getUsername() }}</strong>
                 </div>
+                <p>Please enter the 6-digit code sent to your email. It is valid for 10 minutes.</p>
                 <div class="flex input-container">
                     <label for="verification" v-if="!verificationInput.length" class="flex">
                         2FA PIN<span>*</span>
@@ -339,14 +342,14 @@ async function signOut(): Promise<void> {
                     <input type="text" v-model="verificationInput" required id="verification" name="verification"
                         minlength="6" maxlength="6" autocomplete="off" />
                 </div>
-                <div style="height: 41px;"></div>
                 <button type="submit" class="flex button-login" ref="verificationButton"
                     title="Submit your 2FA code to complete login.">
                     <span>Submit</span>
                     <i class="fa-regular fa-arrow-right-to-bracket"></i>
                 </button>
-                <button type="button" class="flex" @click="step = 1" title="Go back to the previous step.">
-                    <span>Not you?</span>
+                <button type="button" class="flex" @click="step = 1; previousInputValues.password = ''"
+                    title="Go back to the previous step.">
+                    <span>Cancel</span>
                     <i class="fa-regular fa-arrow-left"></i>
                 </button>
                 <small>Trouble signing in? If you are supposed to be here, you know who to contact.</small>
@@ -359,14 +362,13 @@ async function signOut(): Promise<void> {
                 </div>
                 <div class="flex input-container">
                     <label for="guest" v-if="!guestInput.length" class="flex">
-                        Guest PIN<span>*</span>
+                        Guest E-mail<span>*</span>
                     </label>
-                    <input type="text" v-model="guestInput" required id="guest" name="guest" minlength="32"
-                        maxlength="32" autocomplete="off" />
+                    <input type="email" v-model="guestInput" required id="guest" name="guest" />
                 </div>
                 <div style="height: 41px;"></div>
                 <button type="submit" class="flex button-login" ref="guestButton"
-                    title="Submit your Guest PIN to login.">
+                    title="Submit your Guest E-mail to login.">
                     <span>Login</span>
                     <i class="fa-regular fa-arrow-right-to-bracket"></i>
                 </button>

@@ -1,5 +1,3 @@
-import type { User } from "#auth-utils";
-
 export enum AppTypes {
     OVERWAY = "overway",
     ADMINISTRATOR = "administrator",
@@ -9,8 +7,8 @@ export enum AppTypes {
 }
 
 export enum UserTypes {
-    USER = "User",
-    GUEST = "Guest",
+    USER = "App\\Models\\User",
+    GUEST = "App\\Models\\GuestUser",
 }
 
 export enum Languages {

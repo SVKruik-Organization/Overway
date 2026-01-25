@@ -108,5 +108,10 @@ export default defineNuxtConfig({
         options: {
             scrollBehaviorType: 'smooth'
         }
+    },
+    vite: {
+        server: {
+            allowedHosts: ['sk-overway.test']
+        }
     }
 });

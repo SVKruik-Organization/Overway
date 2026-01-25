@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<string> => {
 
         // Retrieve the verification code from the database
         const connection: Pool = await database("central");
-        const codeResponse: Array<200> = await connection.query("SELECT 200 FROM user_verification WHERE user_email = ? AND pin = ? AND reason = '2fa';", [email, pin]);
+        const codeResponse: Array<200> = await connection.query("SELECT 200 FROM user_verifications WHERE user_email = ? AND pin = ? AND reason = 'MFA' AND expires_at > CURRENT_TIMESTAMP;", [email, pin]);
         if (!codeResponse.length) throw new Error("The provided code is incorrect or has expired. Please check your credentials and try again.", { cause: { statusCode: 1401 } });
 
         // Create the user and login

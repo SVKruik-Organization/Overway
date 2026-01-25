@@ -9,34 +9,32 @@ type LoginConfig = {
 }
 
 export class GuestEntity {
-    id: number | null = null;
-    code: string | null = null;
+    id: string | null = null;
+    email: string | null = null;
     appName: string;
     database: Pool;
 
-    constructor(id: number | null, code: string | null, appName: string, database: Pool) {
+    constructor(id: string | null, email: string | null, appName: string, database: Pool) {
         this.id = id;
-        this.code = code;
+        this.email = email;
         this.appName = appName;
         this.database = database;
     }
 
     async login(event: H3Event, config?: LoginConfig): Promise<string> {
-        if (this.id === null && this.code === null) throw new Error("ID or code must be provided to fetch Guest.", { cause: { statusCode: 1400 } });
+        if (this.id === null && this.email === null) throw new Error("ID or email must be provided to fetch Guest.", { cause: { statusCode: 1400 } });
 
         // Fetch additional PII
         const additionalData: Array<{
-            "id": number,
-            "first_name": string,
-            "last_name": string,
-            "password": string,
-            "image_name": string,
+            "id": string,
+            "full_name": string,
+            "email": string,
             "admin_email": string,
             "admin_name": string,
-        }> = await this.database.query("SELECT guest.id, guest.first_name, guest.last_name, guest.password, guest.image_name, email as admin_email, CONCAT(user.first_name, ' ', user.last_name) as admin_name FROM guest LEFT JOIN user ON user.id = guest.created_by_id WHERE guest.id = ? OR guest.password = ?;", [this.id, this.code]);
+        }> = await this.database.query("SELECT guest_users.id, guest_users.full_name, guest_users.email AS guest_email, users.email as admin_email, users.full_name as admin_name FROM guest_users LEFT JOIN users ON users.id = guest_users.owner_id WHERE guest_users.id = ? OR guest_users.email = ?;", [this.id, this.email]);
         if (!additionalData.length) throw new Error("This guest account does not exist. Please check your credentials and try again.", { cause: { statusCode: 1401 } });
         this.id = additionalData[0].id;
-        this.code = additionalData[0].password;
+        this.email = additionalData[0].email;
 
         // Send new login email to the Administrator who created the guest
         if (!config?.disableSendMail) await sendMail({
@@ -44,18 +42,16 @@ export class GuestEntity {
             "fileName": "new-guest-login",
             "replacements": [
                 { "key": "adminName", "value": additionalData[0].admin_name },
-                { "key": "guestName", "value": `${additionalData[0].first_name} ${additionalData[0].last_name}` },
+                { "key": "guestName", "value": `${additionalData[0].full_name}` },
                 { "key": "platformName", "value": this.appName }]
-        }, "amqp");
+        }, "amqp", this.appName);
 
         // Create the session
         await createUserSession(event, {
             "id": this.id,
-            "firstName": additionalData[0].first_name,
-            "lastName": additionalData[0].last_name,
-            "email": null,
+            "fullName": additionalData[0].full_name,
+            "email": this.email,
             "type": UserTypes.GUEST,
-            "imageName": additionalData[0].image_name,
             "language": Languages.EN
         }, this.database);
 

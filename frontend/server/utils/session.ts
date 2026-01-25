@@ -23,8 +23,8 @@ export async function createUserSession(event: H3Event, user: User, connection: 
     }, getSessionTTL(user.type));
 
     // Update the last login date in the database
-    const tableName: string = user.type === UserTypes.USER ? "user" : "guest";
-    await connection.query(`UPDATE ${tableName} SET date_last_login = CURRENT_TIMESTAMP WHERE id = ?;`, [user.id]);
+    const tableName: string = user.type === UserTypes.USER ? "users" : "guest_users";
+    await connection.query(`UPDATE ${tableName} SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?;`, [user.id]);
 
     // Return the user data
     return userSession.user as User;
@@ -40,11 +40,10 @@ export async function createUserSession(event: H3Event, user: User, connection: 
 export async function createUserToken(user: UserEntity | GuestEntity): Promise<string> {
     const token = randomUUID();
     const type = user instanceof UserEntity ? UserTypes.USER : UserTypes.GUEST;
-    const dateExpiry = new Date(Date.now() + getSessionTTL(type).maxAge * 1000);
     await user.database.query(`
-        DELETE FROM user_session WHERE object_id = ? AND object_type = ?;
-        INSERT INTO user_session (object_id, object_type, token, app_name, date_expiry) VALUES (?, ?, ?, ?, ?);`,
-        [user.id, type,
-        user.id, type, token, user.appName, dateExpiry]);
+        DELETE FROM sessions WHERE object_id = ? AND object_type = ? AND app_name = ?;
+        INSERT INTO sessions (id, object_id, object_type, payload, app_name, last_activity) VALUES (?, ?, ?, ?, ?, ?);`,
+        [user.id, type, user.appName,
+        randomUUID(), user.id, type, token, user.appName, Math.floor(Date.now() / 1000)]);
     return token;
 }
