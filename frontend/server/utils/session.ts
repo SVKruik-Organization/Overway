@@ -39,11 +39,15 @@ export async function createUserSession(event: H3Event, user: User, connection: 
  */
 export async function createUserToken(user: UserEntity | GuestEntity): Promise<string> {
     const token = randomUUID();
-    const type = user instanceof UserEntity ? UserTypes.USER : UserTypes.GUEST;
+    const userType = user instanceof UserEntity ? UserTypes.USER : UserTypes.GUEST;
     await user.database.query(`
-        DELETE FROM sessions WHERE object_id = ? AND object_type = ? AND app_name = ?;
-        INSERT INTO sessions (id, object_id, object_type, payload, app_name, last_activity) VALUES (?, ?, ?, ?, ?, ?);`,
-        [user.id, type, user.appName,
-        randomUUID(), user.id, type, token, user.appName, Math.floor(Date.now() / 1000)]);
+        DELETE FROM sessions WHERE user_id = ? AND user_type = ?;
+        INSERT INTO sessions (id, user_id, user_type, payload, last_activity, app_name) VALUES (?, ?, ?, ?, ?, 'SK Overway');`,
+        [user.id, userType,
+        randomUUID(), user.id, userType, token, Math.floor(Date.now() / 1000)]);
     return token;
+}
+
+export async function getUserFromToken(token: string): Promise<UserEntity | GuestEntity | null> {
+
 }

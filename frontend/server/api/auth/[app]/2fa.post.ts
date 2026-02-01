@@ -11,8 +11,8 @@ const bodySchema = z.object({
 
 /**
  * Submit the 2FA code for verification
- * If successful, creates a session for the user
- * @returns The user info and session information.
+ * If successful, creates a session for the user.
+ * @returns The token of the created session.
  */
 export default defineEventHandler(async (event): Promise<string> => {
     try {

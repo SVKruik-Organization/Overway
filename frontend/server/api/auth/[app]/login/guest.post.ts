@@ -9,8 +9,8 @@ const bodySchema = z.object({
 });
 
 /**
- * Login a guest user using a code.
- * @returns The user info and session information.
+ * Request a login for a guest user using an email.
+ * @returns The full name of the user, used for the UI.
  */
 export default defineEventHandler(async (event): Promise<string> => {
     try {
@@ -19,10 +19,10 @@ export default defineEventHandler(async (event): Promise<string> => {
         const { email } = parseResult.data;
         const appName = formatAppName(getRouterParam(event, "app"));
 
-        // Create the guest and login
+        // Create the guest and request login
         const connection: Pool = await database("central");
         const guest: GuestEntity = new GuestEntity(null, email, appName, connection);
-        return await guest.login(event);
+        return await guest.requestLogin();
     } catch (error: any) {
         throw formatApiError(error);
     }

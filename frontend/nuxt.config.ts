@@ -40,6 +40,7 @@ export default defineNuxtConfig({
         uplinkRouter: "",
         public: {
             wsUrl: "",
+            appRedirectOverway: "",
             appRedirectAdministrator: "",
             appRedirectPlatform: "",
             appRedirectCommander: "",

@@ -18,7 +18,7 @@ const emailInput: Ref<string> = ref("");
 const passwordInput: Ref<string> = ref("");
 const verificationInput: Ref<string> = ref("");
 const guestInput: Ref<string> = ref("");
-const step: Ref<1 | 2 | 3 | 4> = ref(1);
+const step: Ref<1 | 2 | 3 | 4 | 5> = ref(1);
 const loginButton = useTemplateRef<HTMLButtonElement>("loginButton");
 const verificationButton = useTemplateRef<HTMLButtonElement>("verificationButton");
 const guestButton = useTemplateRef<HTMLButtonElement>("guestButton");
@@ -149,8 +149,10 @@ async function submitGuest(): Promise<boolean> {
         if (!guestInput.value.length) throw new Error("The form is not completed correctly. Please try again.");
         previousInputValues.value.guest = guestInput.value;
 
-        const token: string = await useFetchLoginGuest(guestInput.value);
-        return handleSuccess(token);
+        const fullName: string = await useFetchLoginGuest(guestInput.value);
+        username.value = fullName;
+        step.value = 5;
+        return true;
     } catch (error: any) {
         $event("popup", {
             id: createTicket(4),
@@ -270,6 +272,7 @@ async function signOut(): Promise<void> {
                     </div>
                 </div>
             </div>
+            <!-- Login but already active session -->
             <form class="flex-col" @submit.prevent="continueLogin"
                 v-if="step === 1 && userSession.loggedIn && userSession.user.value && userSession.user.value.email">
                 <div class="flex-col title">
@@ -290,6 +293,7 @@ async function signOut(): Promise<void> {
                 </button>
                 <small>Trouble signing in? If you are supposed to be here, you know who to contact.</small>
             </form>
+            <!-- Login with email and password -->
             <form class="flex-col" @submit.prevent="submitLogin" v-else-if="step === 1">
                 <div class="flex-col title">
                     <h2>Welcome back,</h2>
@@ -329,6 +333,7 @@ async function signOut(): Promise<void> {
                 </template>
                 <small>Trouble signing in? If you are supposed to be here, you know who to contact.</small>
             </form>
+            <!-- Login successful, submit 2FA code -->
             <form class="flex-col" @submit.prevent="submit2fa" v-else-if="step === 2">
                 <div class="flex-col title">
                     <h2>Almost there,</h2>
@@ -354,6 +359,7 @@ async function signOut(): Promise<void> {
                 </button>
                 <small>Trouble signing in? If you are supposed to be here, you know who to contact.</small>
             </form>
+            <!-- Login as a Guest with an Administrator provided account -->
             <form class="flex-col" @submit.prevent="submitGuest"
                 v-else-if="step === 3 && getAppPreset()?.guestLoginEnabled">
                 <div class="flex-col title">
@@ -378,6 +384,7 @@ async function signOut(): Promise<void> {
                 </button>
                 <small>Trouble signing in? If you are supposed to be here, you know who to contact.</small>
             </form>
+            <!-- Login successful, but no app source to redirect to -->
             <form class="flex-col" @submit.prevent v-else-if="step === 4">
                 <div class="flex-col title">
                     <h2>Good to have you{{ userSession.user.value?.email ? ' back' : '' }},</h2>
@@ -387,6 +394,18 @@ async function signOut(): Promise<void> {
                 <p>Normally you would be redirected, but you do not have an app source.</p>
                 <p>You can close this tab safely and start using everything SK Platform.</p>
             </form>
+            <!-- Guest login successful, so now use the mailed token to login -->
+            <form class="flex-col" @submit.prevent v-else-if="step === 5">
+                <div class="flex-col title">
+                    <h2>Almost there,</h2>
+                    <strong>{{ getUsername() }}</strong>
+                </div>
+                <p>You are logging in with a Guest account.</p>
+                <p>We sent you a mail with a login link to complete your login.</p>
+                <p>If you did not receive the mail, please contact an Administrator.</p>
+                <small>Trouble signing in? If you are supposed to be here, you know who to contact.</small>
+            </form>
+            <!-- Login failed -->
             <form class="flex-col" v-else>
                 <div class="flex-col title">
                     <h2>Something went wrong,</h2>

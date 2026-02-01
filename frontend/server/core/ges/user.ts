@@ -9,12 +9,12 @@ type LoginConfig = {
 }
 
 export class UserEntity {
-    id: string | null = null;
+    id: number | null = null;
     email: string | null = null;
     appName: string;
     database: Pool;
 
-    constructor(id: string | null, email: string | null, appName: string, database: Pool) {
+    constructor(id: number | null, email: string | null, appName: string, database: Pool) {
         this.id = id;
         this.email = email;
         this.appName = appName;
@@ -26,13 +26,13 @@ export class UserEntity {
 
         // Fetch additional PII
         const additionalData: Array<{
-            "id": string,
+            "id": any, // BigInt
             "first_name": string,
             "full_name": string,
             "email": string,
         }> = await this.database.query("SELECT id, first_name, full_name, email FROM users WHERE id = ? OR email = ?;", [this.id, this.email]);
         if (!additionalData.length) throw new Error("Email or password is incorrect. Please check your credentials and try again.", { cause: { statusCode: 1401 } });
-        this.id = additionalData[0].id;
+        this.id = Number(additionalData[0].id);
         this.email = additionalData[0].email;
 
         // Send new login email

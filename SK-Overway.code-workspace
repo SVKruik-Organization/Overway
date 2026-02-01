@@ -1,0 +1,38 @@
+{
+  "folders": [
+    {
+      "path": "./",
+      "name": "Root"
+    },
+    {
+      "path": "./frontend",
+      "name": "Frontend - Nuxt"
+    }
+  ],
+  "settings": {
+    "window.titleBarStyle": "custom",
+
+    "workbench.colorCustomizations": {
+      "titleBar.activeBackground": "#f36c6c",
+      "titleBar.activeForeground": "#ffffff",
+
+      "titleBar.inactiveBackground": "#9b3c4a",
+      "titleBar.inactiveForeground": "#f2c6cc",
+
+      "commandCenter.background": "#f36c6c",
+      "commandCenter.foreground": "#ffffff",
+      "commandCenter.activeBackground": "#ff8a8a",
+
+      "activityBar.background": "#3a1620",
+      "activityBar.foreground": "#ffffff",
+      "activityBar.inactiveForeground": "#d9a3aa",
+
+      "statusBar.background": "#3a1620",
+      "statusBar.foreground": "#ffffff",
+      "statusBar.noFolderBackground": "#3a1620",
+
+      "window.activeBorder": "#ff8a8a",
+      "window.inactiveBorder": "#3a1620"
+    }
+  }
+}

@@ -7,8 +7,8 @@ export default defineEventHandler(async (event) => {
     if (event.node.req.method !== "GET") {
         try {
             const data = {
-                objectType: null as UserTypes | null,
-                objectId: null as string | null,
+                objectType: null as UserTypes | null | undefined,
+                objectId: null as number | null,
                 description: null as string | null,
                 endpoint: event.node.req.url || null,
                 method: event.node.req.method || null,
@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
                 data.objectId = session.user.id;
                 data.description = session.user.fullName;
             }
+
+            data.objectId = data.objectId ? Number(data.objectId) : null;
 
             const connection = await database("central");
             await connection.query("INSERT INTO event_logs (object_type, object_id, description, endpoint, method, ip_address) VALUES (?, ?, ?, ?, ?, ?)", [...Object.values(data)]);

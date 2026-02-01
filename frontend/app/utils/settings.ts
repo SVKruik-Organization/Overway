@@ -14,7 +14,7 @@ const appPresets: Record<AppTypes, {
     overway: {
         name: "SK Overway",
         userTitle: "User",
-        redirectUrl: null,
+        redirectUrl: config.public.appRedirectOverway,
         guestLoginEnabled: false,
     },
     administrator: {
@@ -58,6 +58,17 @@ export function getAppPreset(overwrite: AppTypes | undefined = undefined): {
     const appName = route.params.app as string | undefined;
     if (!appName) return appPresets.overway;
     return appPresets[appName as keyof typeof appPresets] || appPresets.overway;
+}
+
+/**
+ * Find the app name by the raw name.
+ * @param rawName The raw name of the app.
+ * @returns The app name.
+ */
+export function findAppNameByRawName(rawName: string): AppTypes | undefined {
+    const appName = Object.keys(appPresets).find(app => app.toLowerCase() === rawName.toLowerCase().replace("sk ", ""));
+    if (!appName) return undefined;
+    return appName as AppTypes;
 }
 
 /** Get the session TTL (time to live) in seconds based on user type.
