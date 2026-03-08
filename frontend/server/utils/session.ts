@@ -41,8 +41,8 @@ export async function createUserToken(user: UserEntity | GuestEntity): Promise<s
     const token = randomUUID();
     const userType = user instanceof UserEntity ? UserTypes.USER : UserTypes.GUEST;
     await user.database.query(`
-        DELETE FROM sessions WHERE user_id = ? AND user_type = ?;
-        INSERT INTO sessions (id, user_id, user_type, payload, last_activity, app_name) VALUES (?, ?, ?, ?, ?, 'SK Overway');`,
+        DELETE FROM sessions WHERE object_id = ? AND object_type = ?;
+        INSERT INTO sessions (id, object_id, object_type, payload, last_activity, app_name) VALUES (?, ?, ?, ?, ?, 'SK Overway');`,
         [user.id, userType,
         randomUUID(), user.id, userType, token, Math.floor(Date.now() / 1000)]);
     return token;

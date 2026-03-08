@@ -86,9 +86,9 @@ export class GuestEntity {
                 users.full_name AS admin_name
             FROM
                 guest_users
-                LEFT JOIN sessions ON user_id = guest_users.id
+                LEFT JOIN sessions ON object_id = guest_users.id
                 LEFT JOIN users ON users.id = guest_users.owner_id
-            WHERE payload = ? AND user_type = ?`, [token, UserTypes.GUEST]);
+            WHERE payload = ? AND object_type = ?`, [token, UserTypes.GUEST]);
         if (!additionalData.length) throw new Error("This guest account does not exist. Please check your credentials and try again.", { cause: { statusCode: 1401 } });
         this.id = Number(additionalData[0].id);
         this.email = additionalData[0].email;
